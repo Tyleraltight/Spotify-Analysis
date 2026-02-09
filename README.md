@@ -1,40 +1,113 @@
-# Spotify 数据分析仪表板
+[中文](README_zh.md) | English
 
-交互式 Streamlit 网页应用，用于分析 Spotify 音乐数据趋势和特征。
+# Spotify Data Analysis Dashboard
 
-## 功能特性
+An interactive Streamlit web application for analyzing music data trends and audio features from Spotify's extensive music catalog.
 
-- **年份筛选**: 通过滑块选择 1900-2020 年的年份范围
-- **音乐类型筛选**: 多选框选择特定音乐类型或查看全部类型
-- **数据概览**: 显示总歌曲数、平均流行度、平均时长等统计信息
-- **流行度分析**:
-  - 最受欢迎的歌曲排名
-  - 流行度分布直方图
-- **相关性分析**:
-  - 特征相关性热力图
-  - 能量 vs 响度散点图
-  - 流行度 vs 声学特征散点图
-- **时间序列分析**:
-  - 各年份歌曲数量分布
-  - 平均时长随年份变化
-  - 流行度随时间变化趋势
-- **音乐类型分析**:
-  - 各类型平均时长对比
-  - 各类型流行度排名
-  - 音乐类型分布饼图
+---
 
-## 技术栈
+## Project Overview
 
-- **Streamlit** - 网页应用框架
-- **Pandas** - 数据处理
-- **Plotly** - 交互式数据可视化
-- **NumPy** - 数值计算
-- **Matplotlib/Seaborn** - 静态图表支持
+This project transforms traditional data analysis scripts into an interactive web-based visualization platform, enabling real-time exploration of musical patterns across decades. The application provides comprehensive insights into how music characteristics have evolved from 1900 to 2020, examining relationships between acoustic features, popularity metrics, and temporal trends.
 
-## 安装步骤
+Built as part of a data science portfolio, this project demonstrates proficiency in:
+- Data preprocessing and cleaning using Pandas
+- Interactive visualization with Plotly
+- Web application development with Streamlit
+- Statistical analysis and correlation studies
 
-### 1. 创建虚拟环境（可选）
+---
 
+## Technical Implementation
+
+### Data Processing Pipeline
+
+The application employs a modular architecture separating concerns between data ingestion, transformation, and visualization:
+
+```python
+@st.cache_data
+def load_and_process_data():
+    """Load and preprocess CSV datasets with caching optimization."""
+    sp_tracks = pd.read_csv('data/tracks.csv')
+    sp_feature = pd.read_csv('data/SpotifyFeatures.csv')
+
+    # Timestamp conversion and feature engineering
+    sp_tracks['release_date'] = pd.to_datetime(sp_tracks['release_date'])
+    sp_tracks['year'] = sp_tracks['release_date'].dt.year
+    sp_tracks['duration'] = sp_tracks['duration_ms'].apply(lambda x: round(x / 1000))
+
+    return sp_tracks, sp_feature
+```
+
+### Filtering Mechanisms
+
+Real-time data filtering enables dynamic exploration:
+
+```python
+def filter_by_year(df, year_range):
+    """Apply temporal constraints to dataset."""
+    return df[(df['year'] >= year_range[0]) & (df['year'] <= year_range[1])]
+
+def filter_by_genre(df, genres):
+    """Apply genre-based subset selection."""
+    if '全部类型' in genres or len(genres) == 0:
+        return df
+    return df[df['genre'].isin(genres)]
+```
+
+### Performance Optimization
+
+- **Caching Strategy**: Streamlit's `@st.cache_data` decorator minimizes redundant I/O operations
+- **Sampling Algorithm**: Large datasets undergo intelligent sampling (typically 0.4%) to maintain rendering performance while preserving statistical significance
+- **Precomputation**: Yearly statistics are computed once during initialization
+
+---
+
+## Key Features
+
+### 1. Interactive Controls
+- **Year Range Slider**: Select temporal windows from 1900-2020
+- **Genre Multi-Select**: Filter by specific musical categories
+- **View Toggles**: Customize dashboard layout
+
+### 2. Popularity Analysis
+- Top-ranked tracks by popularity score
+- Distribution histogram with density estimation
+- Real-time updates based on temporal filters
+
+### 3. Correlation Analysis
+- **Pearson Correlation Heatmap**: Matrix visualization of feature interdependencies
+- **Scatter Plot Matrix**: Energy vs. Loudness, Popularity vs. Acousticness
+- Interactive tooltips displaying precise measurements
+
+### 4. Time Series Analysis
+- Annual track count distribution
+- Temporal evolution of average song duration
+- Popularity trends over decades
+
+### 5. Genre Analysis
+- Comparative duration analysis across musical genres
+- Popularity ranking by genre
+- Categorical distribution visualization
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Python 3.8 or higher
+- Git
+
+### Setup Instructions
+
+1. **Clone the repository**:
+```bash
+git clone https://github.com/Tyleraltight/Spotify-Analysis.git
+cd Spotify-Analysis
+```
+
+2. **Create virtual environment** (recommended):
 ```bash
 # Windows
 python -m venv venv
@@ -45,139 +118,98 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 2. 安装依赖
-
-```bash
-pip install streamlit plotly pandas numpy matplotlib seaborn
-```
-
-或使用 requirements.txt：
-
+3. **Install dependencies**:
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. 运行应用
-
+4. **Launch the application**:
 ```bash
 streamlit run app.py
 ```
 
-应用将在浏览器中打开，默认地址为 `http://localhost:8501`
+The dashboard will automatically open in your browser at `http://localhost:8501`
 
-## 项目结构
+---
 
-```
-Spotify-Analysis/
-├── app.py                  # 主应用文件
-├── data/                   # 数据目录
-│   ├── tracks.csv         # 音轨数据
-│   └── SpotifyFeatures.csv # 特征数据
-├── venv/                  # 虚拟环境（可选）
-├── README.md              # 说明文档
-└── spotify.py             # 原始分析脚本
-```
+## Technical Stack
 
-## 数据说明
+| Component | Technology | Purpose |
+|-----------|------------|----------|
+| Web Framework | Streamlit | Rapid application development |
+| Data Processing | Pandas | Data manipulation and cleaning |
+| Visualization | Plotly | Interactive charting |
+| Numerical Computing | NumPy | Array operations |
+| Statistical Graphics | Matplotlib/Seaborn | Static plotting support |
+
+---
+
+## Data Schema
 
 ### tracks.csv
-包含歌曲的基本信息和音频特征：
 
-| 字段 | 说明 |
-|------|------|
-| id | 歌曲ID |
-| name | 歌曲名称 |
-| artists | 艺术家 |
-| popularity | 流行度 (0-100) |
-| release_date | 发行日期 |
-| duration | 时长（秒） |
-| explicit | 是否包含敏感内容 |
-| key | 音调 (0-11) |
-| mode | 调式 (0=小调, 1=大调) |
-| tempo | 速度 (BPM) |
-| danceability | 可舞性 |
-| energy | 能量 |
-| loudness | 响度 |
-| acousticness | 声学特征 |
-| instrumentalness | 器乐特征 |
-| valence | 情感值 |
+| Field | Description | Type |
+|-------|-------------|------|
+| id | Unique track identifier | int |
+| name | Track title | str |
+| artists | Performing artist(s) | str |
+| popularity | Spotify popularity metric (0-100) | int |
+| release_date | Publication timestamp | datetime |
+| duration | Track length in seconds | int |
+| explicit | Explicit content flag | bool |
+| key | Musical key (0-11) | int |
+| mode | Modality (0=minor, 1=major) | int |
+| tempo | Tempo in BPM | float |
+| danceability | Danceability score (0-1) | float |
+| energy | Energy level (0-1) | float |
+| loudness | Loudness in dB | float |
+| acousticness | Acoustic characteristic (0-1) | float |
+| instrumentalness | Instrumental presence (0-1) | float |
+| valence | Musical positiveness (0-1) | float |
 
 ### SpotifyFeatures.csv
-包含不同音乐类型的统计特征：
 
-| 字段 | 说明 |
-|------|------|
-| genre | 音乐类型 |
-| danceability | 平均可舞性 |
-| energy | 平均能量 |
-| key | 平均音调 |
-| loudness | 平均响度 |
-| mode | 平均调式 |
-| speechiness | 平均语音度 |
-| acousticness | 平均声学特征 |
-| instrumentalness | 平均器乐特征 |
-| liveness | 平均现场感 |
-| valence | 平均情感值 |
-| tempo | 平均速度 |
-| duration | 平均时长 |
+| Field | Description | Type |
+|-------|-------------|------|
+| genre | Musical category | str |
+| danceability | Average danceability per genre | float |
+| energy | Average energy per genre | float |
+| key | Average key per genre | int |
+| loudness | Average loudness per genre | float |
+| mode | Average modality per genre | int |
+| speechiness | Average speechiness per genre | float |
+| acousticness | Average acousticness per genre | float |
+| instrumentalness | Average instrumentalness per genre | float |
+| liveness | Average liveness per genre | float |
+| valence | Average valence per genre | float |
+| tempo | Average tempo per genre | float |
+| duration | Average duration per genre | float |
 
-## 使用指南
+---
 
-1. **侧边栏控制**:
-   - 使用年份滑块选择时间范围
-   - 使用多选框选择音乐类型
-   - 勾选想要查看的分析视图
+## Deployment Options
 
-2. **交互功能**:
-   - 所有图表都支持鼠标悬停查看详细信息
-   - 图表可以缩放和平移
-   - 点击图例可以隐藏/显示数据系列
-
-3. **数据筛选**:
-   - 年份筛选会实时更新所有图表
-   - 音乐类型筛选只影响音乐类型分析部分
-
-## 性能优化
-
-- 使用 Streamlit 的 `@st.cache_data` 装饰器缓存数据加载
-- 大数据集时自动采样以提高渲染速度
-- 预计算常用的统计指标
-
-## 部署选项
-
-### 本地部署
-```bash
-streamlit run app.py
-```
-
-### Streamlit Cloud
-1. 将代码推送到 GitHub
-2. 访问 [Streamlit Cloud](https://streamlit.io/cloud)
-3. 连接 GitHub 仓库并部署
+### Streamlit Cloud (Recommended)
+1. Push code to GitHub
+2. Connect repository at [Streamlit Cloud](https://streamlit.io/cloud)
+3. Automatic deployment upon commit
 
 ### Heroku
-需要创建 `requirements.txt` 和 `Procfile`:
+Create `requirements.txt` and `Procfile`:
 
 **Procfile**:
 ```
 web: streamlit run app.py --server.port=$PORT
 ```
 
-## 常见问题
+---
 
-**Q: 应用启动很慢？**
-A: 首次运行会加载数据和创建缓存，后续运行会更快。
+## License
 
-**Q: 图表显示不完整？**
-A: 尝试调整浏览器窗口大小或缩放页面。
+This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
 
-**Q: 中文显示乱码？**
-A: 确保系统已安装中文字体，或修改 `plt.rcParams` 中的字体设置。
+---
 
-## 许可证
+## Contact
 
-MIT License
-
-## 联系方式
-
-如有问题或建议，请提交 Issue。
+For inquiries or contributions, please open an issue on GitHub.
